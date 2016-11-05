@@ -11,7 +11,8 @@ public class Contract {
 	interface ViewInterface {
 
 		void newGameDisplayPlayChoices();
-		void displayPlayChoicesMade(String opponentChoice);
+		void displayPlayChoicesMade(String playerChoice, String opponentChoice);
+		void notifyOpponentHasPlayed();
 		void displayResults(Result result);
 		void opponentConnectionLost();
 

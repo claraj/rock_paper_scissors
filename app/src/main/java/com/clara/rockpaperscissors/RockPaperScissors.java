@@ -65,7 +65,7 @@ class RockPaperScissors implements Contract.GameInterface, Firebase.OpponentData
 		firebase.savePlayerToDB(player);
 		//should update the key in the player object
 
-		return player;
+		return player;    //Game has a reference to this player
 
 	}
 
@@ -85,6 +85,8 @@ class RockPaperScissors implements Contract.GameInterface, Firebase.OpponentData
 	public void availableOpponentFound(Player op) {
 
 		gameUI.newGameDisplayPlayChoices();
+		player.available = false;
+		firebase.savePlayerToDB(player);
 		opponent = op;
 
 	}
@@ -94,10 +96,10 @@ class RockPaperScissors implements Contract.GameInterface, Firebase.OpponentData
 	public void noOpponentAvailable(boolean error) {
 
 		if (error) {
+
 			//TODO play locally against computer?
 
 		} else {
-			//todo
 
 			firebase.listenForDiscovery(player, this);
 		}
@@ -109,13 +111,24 @@ class RockPaperScissors implements Contract.GameInterface, Firebase.OpponentData
 	public void userPlayed(String play) {
 
 		//user clicks button. Update firebase, await opponent play
+		//If the opponent has played already, determine winner, tell UI to update
 
 		player.played = play;
 		firebase.savePlayerToDB(player);
-		firebase.awaitOpponentPlay(opponent, this);
 
-		//todo timeout if opponent never plays
 
+		if (opponent.played == null) {
+
+			firebase.awaitOpponentPlay(opponent, this);
+
+			//todo timeout if opponent never plays
+		}
+
+		else {
+
+			bothHavePlayedDetermineWinner();
+
+		}
 	}
 
 
@@ -135,32 +148,51 @@ class RockPaperScissors implements Contract.GameInterface, Firebase.OpponentData
 	@Override
 	public void userReset() {
 
+		// todo make sure each waits for the other to reset
+
 		player.played = null;
 		firebase.savePlayerToDB(player);
 
 		//new game
 
-		firebase.awaitOpponentReset(opponent, this);
+			firebase.awaitOpponentReset(opponent, this);
 
 
 	}
 
 
-
-
 	@Override
 	public void opponentPlayed(Player opponent) {
 
-		//Determine winner, tell UI to update
+		//If the player has played, determine winner, tell UI to update
 
-		///did  this player win?
+		this.opponent = opponent;
+
+		if (player.played == null) {
+
+			//wait for player to play... todo update UI that opponent has played?
+			gameUI.notifyOpponentHasPlayed();
+
+		}
+
+		else {
+			///did  this player win?
+			bothHavePlayedDetermineWinner();
+
+		}
+
+	}
+
+
+	private void bothHavePlayedDetermineWinner() {
+
 		Result result = determineWinner();
 
-		Log.d(TAG, "opponent status: " + opponent + " and result is " + result);
+		Log.d(TAG, "player status: " + player);
+		Log.d(TAG, "opponent status: " + opponent);
+		Log.d(TAG, "result  " + opponent);
 
-		//save new opponent state
-		this.opponent = opponent;
-		gameUI.displayPlayChoicesMade(opponent.played);
+		gameUI.displayPlayChoicesMade(player.played, opponent.played);
 		gameUI.displayResults(result);
 
 	}
@@ -169,13 +201,25 @@ class RockPaperScissors implements Contract.GameInterface, Firebase.OpponentData
 	@Override
 	public void opponentReset() {
 
-
 		//new game!
 
 		//todo test if opponent is still available
 
-		availableOpponentFound(opponent);
+		//todo make sure both have reset
 
+		opponent.played = null;
+
+		if (player.played == null) {
+
+			newGame();
+		} else {
+			//awaiting player reset
+		}
+	}
+
+
+	private void newGame(){
+		availableOpponentFound(opponent);
 	}
 
 

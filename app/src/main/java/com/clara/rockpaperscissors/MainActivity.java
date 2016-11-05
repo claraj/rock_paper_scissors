@@ -147,8 +147,6 @@ public class MainActivity extends AppCompatActivity implements Contract.ViewInte
 		thisPlayerPlayIV.setVisibility(View.INVISIBLE);
 		resultTV.setVisibility(View.INVISIBLE);
 
-		player.played = null;
-
 		enableButtons(true);
 
 		opponentStatusTV.setText("Waiting for other player ready to start game, and make their choice...");
@@ -183,15 +181,21 @@ public class MainActivity extends AppCompatActivity implements Contract.ViewInte
 	}
 
 
-	/*this is for displaying the two user's plays */
-	public void displayPlayChoicesMade(String opponentPlay) {
+	public void notifyOpponentHasPlayed() {
+		opponentStatusTV.setText("Opponent has made their choice...");
 
-		Log.d(TAG, "display results, this player" + player + " opponent play " + opponentPlay ) ;
+	}
+
+
+	/*this is for displaying the two user's plays */
+	public void displayPlayChoicesMade(String playerPlay, String opponentPlay) {
+
+		Log.d(TAG, "display results, this player " + playerPlay + " opponent play " + opponentPlay ) ;
 
 
 		opponentStatusTV.setText("You both played...");
 
-		thisPlayerPlayIV.setImageDrawable(getDrawable(player.played));
+		thisPlayerPlayIV.setImageDrawable(getDrawable(playerPlay));
 		opponentPlayIV.setImageDrawable(getDrawable(opponentPlay));
 
 		thisPlayerPlayIV.setVisibility(View.VISIBLE);
@@ -229,6 +233,9 @@ public class MainActivity extends AppCompatActivity implements Contract.ViewInte
 	}
 
 
+
+
+
 	@Override
 	public void opponentConnectionLost() {
 
@@ -237,6 +244,9 @@ public class MainActivity extends AppCompatActivity implements Contract.ViewInte
 
 
 	}
+
+
+
 
 	@Override
 	public void onPause() {
@@ -251,7 +261,7 @@ public class MainActivity extends AppCompatActivity implements Contract.ViewInte
 		Log.d(TAG, "on resume, this player " + player);
 
 		//Add self back to DB
-		game.playerActivityResumes();  //need to pass player key? Game should have this.
+		game.playerActivityResumes();
 
 
 	}
@@ -263,8 +273,6 @@ public class MainActivity extends AppCompatActivity implements Contract.ViewInte
 
 
 
-
-
 	private Drawable getDrawable(String play) {
 
 		int drawableId = 0;
@@ -273,10 +281,10 @@ public class MainActivity extends AppCompatActivity implements Contract.ViewInte
 				drawableId = R.drawable.rock;
 				break;
 			case Play.PAPER:
-				drawableId = R.drawable.scissors;
+				drawableId = R.drawable.paper;
 				break;
 			case Play.SCISSORS:
-				drawableId = R.drawable.paper;
+				drawableId = R.drawable.scissors;
 				break;
 		}
 
